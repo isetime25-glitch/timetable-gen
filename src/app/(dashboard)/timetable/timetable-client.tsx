@@ -130,7 +130,7 @@ export default function TimetableClient({ departmentId }: Props) {
     setError(null);
     try {
       const [schedRes, collRes] = await Promise.all([
-        fetch(`/api/schedule?department_id=${departmentId}&section=${selectedSection}&t=${Date.now()}`, {
+        fetch(`/api/schedule?department_id=${departmentId}&section=${selectedSection}&semester=${selectedSemester}&t=${Date.now()}`, {
           cache: "no-store",
           headers: { "Cache-Control": "no-cache" },
         }),
@@ -151,7 +151,7 @@ export default function TimetableClient({ departmentId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [departmentId, selectedSection]);
+  }, [departmentId, selectedSection, selectedSemester]);
 
   useEffect(() => { fetchTimetable(); }, [fetchTimetable]);
 

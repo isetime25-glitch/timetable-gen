@@ -237,6 +237,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const department_id = searchParams.get('department_id');
     const section = searchParams.get('section') || 'A';
+    const semester = searchParams.get('semester');
 
     if (!department_id) {
       return NextResponse.json(
@@ -247,7 +248,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('timetable_slots')
       .select(`
         id,
@@ -262,7 +263,7 @@ export async function GET(request: NextRequest) {
         created_at,
         section,
         teachers  ( id, name, email ),
-        subjects  ( id, code, title, weekly_credits, preferred_room_type ),
+        subjects  ( id, code, title, weekly_credits, preferred_room_type, semester ),
         room_pool ( id, room_name, room_type, capacity )
       `)
       .eq('department_id', department_id)
@@ -270,11 +271,23 @@ export async function GET(request: NextRequest) {
       .order('day_of_week', { ascending: true })
       .order('start_time', { ascending: true });
 
+    if (semester) {
+      query = query.eq('subjects.semester', parseInt(semester, 10));
+    }
+
+    const { data, error } = await query;
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ slots: data });
+    // When filtering by semester via the join, rows whose subject doesn't match
+    // will have subjects set to null. Filter those out.
+    const filtered = semester
+      ? (data ?? []).filter((row: any) => row.subjects !== null)
+      : (data ?? []);
+
+    return NextResponse.json({ slots: filtered });
 
   } catch (error) {
     console.error('[/api/schedule GET]', error);

@@ -615,7 +615,7 @@ int main() {
         return out.success ? 0 : 1;
     } catch (const std::exception& e) {
         std::cout << "{\"success\":false,\"status\":\"ERROR\",\"slots\":[],"
-                     "\"conflict_log\":[\"" << e.what() << "\"]}" << std::endl;
+                     "\"conflict_log\":[\"" << esc(e.what()) << "\"]}" << std::endl;
         return 1;
     }
 }
